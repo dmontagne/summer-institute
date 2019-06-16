@@ -69,9 +69,7 @@ h6 {
 </style>
 
 
-</head>
 
-<body>
 
 <style type="text/css">
 .main-container {
@@ -96,22 +94,92 @@ img {
 button.code-folding-btn:focus {
   outline: none;
 }
+summary {
+  display: list-item;
+}
 </style>
 
 
 
-<div class="container-fluid main-container">
-
 <!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
 <script>
 $(document).ready(function () {
   window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
 });
 </script>
 
 <!-- code folding -->
 
 
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
 
 
 
@@ -237,7 +305,7 @@ tidy_trump_tweets&lt;- trumptweets %&gt;%
 ##  8 in     1213
 ##  9 is     1045
 ## 10 for     886
-## # ... with 8,680 more rows</code></pre>
+## # … with 8,680 more rows</code></pre>
 <p>Not very informative or interesting that the most frequent word used by trump is “the” is it? This brings us to our next subject: text pre-processing.</p>
 </div>
 <div id="text-pre-processing" class="section level1">
@@ -246,6 +314,8 @@ tidy_trump_tweets&lt;- trumptweets %&gt;%
 <p><strong>Stopwords</strong></p>
 <p>Common words such as “the”,“and”,“bot”,“for”,“is” etc. are often described as “stop words,” meaning that they should not be included in a quantitative text analysis. Removing stop words is fairly easy regardless of whether you are working with a Corpus object or a tidytext object assuming you are working with a widely used language such as English. Let’s begin with the former, using the <code>tm_map</code> function as follows:</p>
 <pre class="r"><code>trump_corpus &lt;- tm_map(trump_corpus, removeWords, stopwords(&quot;english&quot;))</code></pre>
+<pre><code>## Warning in tm_map.SimpleCorpus(trump_corpus, removeWords,
+## stopwords(&quot;english&quot;)): transformation drops documents</code></pre>
 <p>In <code>tidytext</code> we can remove stopwords as follows:</p>
 <pre class="r"><code> data(&quot;stop_words&quot;)
     tidy_trump_tweets&lt;-tidy_trump_tweets %&gt;%
@@ -267,18 +337,22 @@ tidy_trump_tweets&lt;- trumptweets %&gt;%
 ##  8 fake        234
 ##  9 trump       218
 ## 10 country     213
-## # ... with 8,111 more rows</code></pre>
+## # … with 8,111 more rows</code></pre>
 <p>Looks better, but we still have a number of terms in there that might not be very useful such as “https” or “t.co”, which is an abbreviation used in links shared on twitter. Likewise “rt” is an abbreviation for “retweet,” and does not thus carry much meaning.</p>
 <p>If we wanted to remove these words, we could create a custom list of stop words in the form of a character vector, and use the same <code>anti_join</code> function above to remove all words within this custom list.</p>
 <p><strong>Punctuation</strong></p>
 <p>Another common step in pre-processing text is to remove all punctuation marks. This is generally considered important, since to an algorithm the punctuation mark “,” will assume a unique numeric identity just like the term “economy.” It is often therefore advisable to remove punctuation marks in an automated text analysis, but there are also a number of cases where this can be problematic. Consider the phrase, “Let’s eat, Grandpa” vs. “Lets eat Grandpa.”</p>
 <p>To remove punctuation marks within a <code>Corpus</code> object, we use this code:</p>
 <pre class="r"><code>trump_corpus &lt;- tm_map(trump_corpus, content_transformer(removePunctuation))</code></pre>
+<pre><code>## Warning in tm_map.SimpleCorpus(trump_corpus,
+## content_transformer(removePunctuation)): transformation drops documents</code></pre>
 <p>An advantage of <code>tidytext</code> is that it removes punctuation automatically.</p>
 <p><strong>Removing Numbers</strong></p>
 <p>In many texts, numbers can carry significant meaning. Consider, for example, a text about the 4th of July. On the other hand, many numbers add little to the meaning of a text, and so it has become commonplace in the field of natural language processing to remove them from an analysis.</p>
 <p>One can remove numbers from a <code>Corpus</code> object as follows:</p>
 <pre class="r"><code>trump_corpus &lt;- tm_map(trump_corpus, content_transformer(removeNumbers))</code></pre>
+<pre><code>## Warning in tm_map.SimpleCorpus(trump_corpus,
+## content_transformer(removeNumbers)): transformation drops documents</code></pre>
 <p>This is also very easy in <code>tidytext</code> using basic <code>grep</code> commands (note the <code>&quot;\\b\\d+\\b&quot;</code> text here tells R to remove all numeric digits and the ‘-’ sign means grep excludes them rather than includes them):</p>
 <pre class="r"><code>tidy_trump_tweets&lt;-tidy_trump_tweets[-grep(&quot;\\b\\d+\\b&quot;, tidy_trump_tweets$word),]</code></pre>
 <p><strong>Word Case</strong></p>
@@ -288,6 +362,8 @@ tidy_trump_tweets&lt;- trumptweets %&gt;%
 <p><strong>Removing whitespaces</strong></p>
 <p>Often, a single white space or group of whitespaces can also be considered to be a “word” within a corpus. To prevent this, do the following with a <code>Corpus</code> object:</p>
 <pre class="r"><code>trump_corpus &lt;- tm_map(trump_corpus, content_transformer(stripWhitespace))</code></pre>
+<pre><code>## Warning in tm_map.SimpleCorpus(trump_corpus,
+## content_transformer(stripWhitespace)): transformation drops documents</code></pre>
 <p>In <code>tidytext</code> we can use the <code>gsub</code> function again as follows (s+ describes a blank space)</p>
 <pre class="r"><code>tidy_trump_tweets$word &lt;- gsub(&quot;\\s+&quot;,&quot;&quot;,tidy_trump_tweets$word)</code></pre>
 <p><strong>Stemming</strong></p>
